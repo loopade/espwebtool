@@ -11,15 +11,15 @@ import DialogTitle from '@mui/material/DialogTitle'
 const ConfirmWindow = (props) => {
     return (
         <Dialog open={props.open} onClose={props.onCancel}>
-            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogTitle>是否要继续擦除？</DialogTitle>
 
             <DialogContent>
                 <DialogContentText>{props.text}</DialogContentText>
             </DialogContent>
 
             <DialogActions>
-                <Button onClick={props.onCancel} color='secondary'>Cancel</Button>
-                <Button onClick={props.onOk} color='primary'>Continue</Button>
+                <Button onClick={props.onCancel} color='secondary'>取消</Button>
+                <Button onClick={props.onOk} color='primary'>继续</Button>
             </DialogActions>
         </Dialog>
     )

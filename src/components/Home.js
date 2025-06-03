@@ -27,7 +27,7 @@ const Home = (props) => {
                     <Box align='center'>
                         <Box>
                             <Button variant='contained' color='success' size='large' onClick={props.connect} sx={{ m: 1 }}>
-                                Connect
+                                连接设备
                             </Button>
                         </Box>
 
@@ -38,10 +38,10 @@ const Home = (props) => {
                         </Box>
 
                         <Alert severity='info' align='left'>
-                            1. Click on Connect<br />
-                            2. Plug in your ESP & select the port<br />
-                            3. Add your .bin & set the address<br />
-                            4. Click Program to flash it 😊<br />
+                            1. 点击「连接设备」<br />
+                            2. 插入ESP设备并选择端口<br />
+                            3. 添加.bin文件并设置地址<br />
+                            4. 点击程序以烧录它 😊<br />
                         </Alert>
                     </Box>
 

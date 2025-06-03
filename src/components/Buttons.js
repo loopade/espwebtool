@@ -14,7 +14,7 @@ const Buttons = (props) => {
                     onClick={props.erase}
                     disabled={props.disabled}
                 >
-                    Erase
+                    擦除
                 </Button>
             </Grid>
 
@@ -25,7 +25,7 @@ const Buttons = (props) => {
                     onClick={props.program}
                     disabled={props.disabled}
                 >
-                    Program
+                    烧录
                 </Button>
             </Grid>
         </Grid>

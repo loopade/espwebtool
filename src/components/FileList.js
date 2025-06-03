@@ -102,7 +102,7 @@ const FileList = (props) => {
                             </Typography>
                             :
                             <Button variant='outlined' color='primary' component='label' endIcon={<DriveFolderUploadIcon />}>
-                                Select
+                                选择文件
                                 <input
                                     type='file'
                                     hidden
@@ -132,12 +132,12 @@ const FileList = (props) => {
             <Grid container spacing={.5}>
                 <Grid item xs={6} sx={{ textAlign: 'left' }}>
                     <Button color='error' component='label' size='large' onClick={reset} endIcon={<RestartAltIcon />}>
-                        Reset
+                        重置
                     </Button>
                 </Grid>
                 <Grid item xs={6} sx={{ textAlign: 'right' }}>
                     <Button color='primary' component='label' size='large' onClick={addFile} endIcon={<AddBoxIcon />}>
-                        Add
+                        添加
                     </Button>
                 </Grid>
             </Grid>
