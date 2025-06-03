@@ -14,7 +14,7 @@ const Buttons = (props) => {
                     onClick={props.erase}
                     disabled={props.disabled}
                 >
-                    擦除
+                    格式化
                 </Button>
             </Grid>
 

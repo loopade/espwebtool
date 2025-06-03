@@ -26,7 +26,7 @@ const App = () => {
   const [espStub, setEspStub] = React.useState(undefined) // ESP flasher stuff
   const [uploads, setUploads] = React.useState([]) // Uploaded Files
   const [settingsOpen, setSettingsOpen] = React.useState(false) // Settings Window
-  const [settings, setSettings] = React.useState({...defaultSettings}) // Settings
+  const [settings, setSettings] = React.useState({ ...defaultSettings }) // Settings
   const [confirmErase, setConfirmErase] = React.useState(false) // Confirm Erase Window
   const [confirmProgram, setConfirmProgram] = React.useState(false) // Confirm Flash Window
   const [flashing, setFlashing] = React.useState(false) // Enable/Disable buttons
@@ -53,68 +53,76 @@ const App = () => {
       return
     }
 
-    const esploader = await connectESP({
-      log: (...args) => addOutput(`${args[0]}`),
-      debug: (...args) => console.debug(...args),
-      error: (...args) => console.error(...args),
-      baudRate: parseInt(settings.baudRate),
-    })
-
     try {
-      toast.info('连接中...', { 
-        position: 'top-center', 
-        autoClose: false, 
-        toastId: 'connecting' 
-      })
-      toast.update('connecting', {
-        render: '连接中...',
-        type: toast.TYPE.INFO,
-        autoClose: false
+      const esploader = await connectESP({
+        log: (...args) => addOutput(`${args[0]}`),
+        debug: (...args) => console.debug(...args),
+        error: (...args) => console.error(...args),
+        baudRate: parseInt(settings.baudRate),
       })
 
-      setConnecting(true)
+      try {
+        toast.info('连接中...', {
+          position: 'top-center',
+          autoClose: false,
+          toastId: 'connecting'
+        })
+        toast.update('connecting', {
+          render: '连接中...',
+          type: toast.TYPE.INFO,
+          autoClose: false
+        })
 
-      await esploader.initialize()
+        setConnecting(true)
 
-      addOutput(`Connected to ${esploader.chipName}`)
-      addOutput(`MAC Address: ${formatMacAddr(esploader.macAddr())}`)
 
-      const newEspStub = await esploader.runStub()
 
-      setConnected(true)
-      toast.update('connecting', {
-        render: '连接成功 🚀',
-        type: toast.TYPE.SUCCESS,
-        autoClose: 3000
-      })
+        await esploader.initialize()
 
-      //console.log(newEspStub)
+        addOutput(`Connected to ${esploader.chipName}`)
+        addOutput(`MAC Address: ${formatMacAddr(esploader.macAddr())}`)
 
-      newEspStub.port.addEventListener('disconnect', () => {
-        setConnected(false)
-        setEspStub(undefined)
-        toast.warning('设备已断开连接...', { position: 'top-center', autoClose: 3000, toastId: 'settings' })
-        addOutput(`------------------------------------------------------------`)
-      })
+        const newEspStub = await esploader.runStub()
 
-      setEspStub(newEspStub)
-      setUploads(await loadFiles(esploader.chipName))
-      setChipName(esploader.chipName)
-    } catch (err) {
-      const shortErrMsg = `${err}`.replace('Error: ','')
+        setConnected(true)
+        toast.update('connecting', {
+          render: '连接成功 🚀',
+          type: toast.TYPE.SUCCESS,
+          autoClose: 3000
+        })
 
-      toast.update('connecting', {
-        render: shortErrMsg,
-        type: toast.TYPE.ERROR,
-        autoClose: 3000
-      })
+        //console.log(newEspStub)
 
-      addOutput(`${err}`)
+        newEspStub.port.addEventListener('disconnect', () => {
+          setConnected(false)
+          setEspStub(undefined)
+          toast.warning('设备已断开连接...', { position: 'top-center', autoClose: 3000, toastId: 'settings' })
+          addOutput(`------------------------------------------------------------`)
+        })
 
-      await esploader.port.close()
-      await esploader.disconnect()
-    } finally {
-      setConnecting(false)
+        setEspStub(newEspStub)
+        setUploads(await loadFiles(esploader.chipName))
+        setChipName(esploader.chipName)
+      } catch (err) {
+        const shortErrMsg = `${err}`.replace('Error: ', '')
+
+        toast.update('connecting', {
+          render: shortErrMsg,
+          type: toast.TYPE.ERROR,
+          autoClose: 3000
+        })
+
+        addOutput(`${err}`)
+
+        await esploader.port.close()
+        await esploader.disconnect()
+      } finally {
+        setConnecting(false)
+      }
+    } catch (e) {
+      toast.error(`连接失败！也许是端口被占用！请重新插拔设备后再试！`, { position: 'top-center', autoClose: 5000, toastId: 'settings' })
+      addOutput(e)
+      return
     }
   }
 
@@ -158,12 +166,12 @@ const App = () => {
 
       return new Promise((resolve, reject) => {
         reader.onerror = () => {
-          reader.abort();
-          reject(new DOMException('Problem parsing input file.'));
+          reader.abort()
+          reject(new DOMException('Problem parsing input file.'))
         }
 
         reader.onload = () => {
-          resolve(reader.result);
+          resolve(reader.result)
         }
         reader.readAsArrayBuffer(inputFile)
       })
@@ -281,7 +289,7 @@ const App = () => {
       {/* Confirm Erase Window */}
       <ConfirmWindow
         open={confirmErase}
-        text={'这将擦除设备上的已有数据。'}
+        text={'这将擦除设备上的已有数据。非专业人士请勿操作。'}
         onOk={erase}
         onCancel={() => setConfirmErase(false)}
       />

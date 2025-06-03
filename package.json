@@ -2,7 +2,7 @@
   "name": "espwebtool",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://localhost",
+  "homepage": "/esp/webtool",
   "dependencies": {
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
