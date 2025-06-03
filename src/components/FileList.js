@@ -11,7 +11,7 @@ import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload'
 import AddBoxIcon from '@mui/icons-material/AddBox'
 import DeleteIcon from '@mui/icons-material/Delete'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
 
 import styles from './FileList.module.css'
 
@@ -80,6 +80,9 @@ const FileList = (props) => {
 
     return (
         <Box textAlign='center' className={styles.box}>
+            <Typography variant="h6" sx={{ my: 2 }} textAlign='left'>
+                固件更新
+            </Typography>
             {props.uploads.map((file, i) =>
                 <Grid container spacing={0} className={styles.fileItem} key={i}>
                     {/* Offset */}

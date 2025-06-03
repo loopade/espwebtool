@@ -18,6 +18,7 @@ import ConfirmWindow from './components/ConfirmWindow'
 
 import { connectESP, formatMacAddr, sleep, loadFiles, supported } from './lib/esp'
 import { loadSettings, defaultSettings } from './lib/settings'
+import FirmwareViewer from './components/FirmwareViewer'
 
 const App = () => {
   const [connected, setConnected] = React.useState(false) // Connection status
@@ -244,6 +245,13 @@ const App = () => {
             <Typography variant='h3' component='h2' sx={{ color: '#aaa' }}>
               连接中...
             </Typography>
+          </Grid>
+        }
+
+        {/* Remote Presets */}
+        {connected &&
+          <Grid item>
+            <FirmwareViewer />
           </Grid>
         }
 

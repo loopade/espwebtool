@@ -11,7 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 const ConfirmWindow = (props) => {
     return (
         <Dialog open={props.open} onClose={props.onCancel}>
-            <DialogTitle>❗危险操作</DialogTitle>
+            <DialogTitle>❗注意</DialogTitle>
 
             <DialogContent>
                 <DialogContentText>{props.text}</DialogContentText>
