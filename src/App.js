@@ -32,6 +32,10 @@ const App = () => {
   const [confirmProgram, setConfirmProgram] = React.useState(false) // Confirm Flash Window
   const [flashing, setFlashing] = React.useState(false) // Enable/Disable buttons
   const [chipName, setChipName] = React.useState('') // ESP8266 or ESP32
+  const [monitoring, setMonitoring] = React.useState(false)
+  const readerRef = React.useRef(null)
+  const monitorPollRef = React.useRef(null)
+  const monitorRunRef = React.useRef(false)
 
   useEffect(() => {
     setSettings(loadSettings())
@@ -45,9 +49,66 @@ const App = () => {
     })
   }
 
+  const stopMonitor = async () => {
+    monitorRunRef.current = false
+    setMonitoring(false)
+    const reader = readerRef.current
+    readerRef.current = null
+    if (monitorPollRef.current) {
+      clearInterval(monitorPollRef.current)
+      monitorPollRef.current = null
+    }
+    if (reader) {
+      try { await reader.cancel() } catch (e) { /* stream may already be closed */ }
+      try { reader.releaseLock() } catch (e) { /* already released */ }
+    }
+  }
+
+  const startMonitor = async (portOverride) => {
+    const target = portOverride || espStub
+    const port = target?.port || target
+    if (!port?.readable || monitorRunRef.current) return
+    monitorRunRef.current = true
+    setMonitoring(true)
+
+    // esp-web-flasher keeps the port reader locked and stores incoming bytes
+    // in the loader's shared input buffer. Consume that buffer while idle.
+    const inputBuffer = target?._inputBuffer
+    if (inputBuffer && port.readable.locked) {
+      const decoder = new TextDecoder()
+      monitorPollRef.current = setInterval(() => {
+        if (!monitorRunRef.current || inputBuffer.length === 0) return
+        const bytes = inputBuffer.splice(0, inputBuffer.length)
+        addOutput(decoder.decode(new Uint8Array(bytes), { stream: true }))
+      }, 50)
+      return
+    }
+
+    try {
+      const reader = port.readable.getReader()
+      readerRef.current = reader
+      const decoder = new TextDecoder()
+      while (monitorRunRef.current) {
+        const { value, done } = await reader.read()
+        if (done) break
+        if (value) addOutput(decoder.decode(value, { stream: true }))
+      }
+    } catch (e) {
+      if (monitorRunRef.current) addOutput(`串口日志读取失败: ${e}`)
+    } finally {
+      try { readerRef.current?.releaseLock() } catch (e) { /* already released */ }
+      readerRef.current = null
+      monitorRunRef.current = false
+      setMonitoring(false)
+    }
+  }
+
+  useEffect(() => () => { stopMonitor() }, [])
+
   // Connect to ESP & init flasher stuff
   const clickConnect = async () => {
     if (espStub) {
+      await stopMonitor()
       await espStub.disconnect()
       await espStub.port.close()
       setEspStub(undefined)
@@ -102,6 +163,7 @@ const App = () => {
         })
 
         setEspStub(newEspStub)
+        setTimeout(() => startMonitor(newEspStub), 0)
         setUploads(await loadFiles(esploader.chipName))
         setChipName(esploader.chipName)
       } catch (err) {
@@ -131,6 +193,7 @@ const App = () => {
   const erase = async () => {
     setConfirmErase(false)
     setFlashing(true)
+    await stopMonitor()
     toast(`正在擦除，请稍候...`, { position: 'top-center', toastId: 'erase', autoClose: false })
 
     try {
@@ -152,6 +215,7 @@ const App = () => {
       console.error(e)
     } finally {
       setFlashing(false)
+      if (espStub) startMonitor()
     }
   }
 
@@ -159,6 +223,7 @@ const App = () => {
   const program = async () => {
     setConfirmProgram(false)
     setFlashing(true)
+    await stopMonitor()
 
     let success = false
 
@@ -179,7 +244,7 @@ const App = () => {
     }
 
     for (const file of uploads) {
-      if (!file.fileName || !file.obj) continue
+      if (file.enabled === false || !file.fileName || !file.obj) continue
       success = true
 
       toast(`上传${file.fileName.substring(0, 28)}中...`, { position: 'top-center', progress: 0, toastId: 'upload' })
@@ -209,10 +274,20 @@ const App = () => {
     }
 
     if (success) {
+      addOutput(`正在自动重启设备...`)
+      try {
+        if (typeof espStub.hardReset === 'function') {
+          await espStub.hardReset()
+          addOutput(`设备已重启，正在等待运行日志...`)
+        } else {
+          addOutput(`刷写完成，请手动重启设备。`)
+        }
+      } catch (e) {
+        addOutput(`自动重启失败，请手动重启设备: ${e}`)
+      }
       addOutput(`完成!`)
-      addOutput(`请重启设备。`)
 
-      toast.success('完成! 请重启设备。', { position: 'top-center', toastId: 'uploaded', autoClose: 3000 })
+      toast.success('完成! 设备已自动重启', { position: 'top-center', toastId: 'uploaded', autoClose: 3000 })
     } else {
       addOutput(`请添加 .bin 文件`)
 
@@ -220,6 +295,7 @@ const App = () => {
     }
 
     setFlashing(false)
+    if (espStub) startMonitor()
   }
 
   return (
@@ -280,7 +356,13 @@ const App = () => {
         {/* Serial Output */}
         {supported() &&
           <Grid item>
-            <Output received={output} />
+            <Output
+              received={output}
+              monitoring={monitoring}
+              canMonitor={connected && !flashing}
+              onStart={startMonitor}
+              onStop={stopMonitor}
+            />
           </Grid>
         }
       </Grid>

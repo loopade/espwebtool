@@ -6,6 +6,11 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import ClearIcon from '@mui/icons-material/Clear'
+import StopIcon from '@mui/icons-material/Stop'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 
 import { setCookie, getCookie } from '../lib/cookie.js'
 import styles from './Output.module.css'
@@ -47,6 +52,12 @@ const Output = (props) => {
         setCookie('output', value)
     }
 
+    const clearOutput = () => {
+        received.current = ''
+        setLines([])
+        props.onClear?.()
+    }
+
     const [visible, setVisible] = React.useState(loadOpen())
 
     return (
@@ -65,6 +76,16 @@ const Output = (props) => {
                     label="输出"
 
                 />
+                <Tooltip title={props.monitoring ? '停止读取串口' : '开始读取串口'}>
+                    <IconButton size='small' onClick={props.monitoring ? props.onStop : props.onStart} disabled={!props.canMonitor}>
+                        {props.monitoring ? <StopIcon fontSize='small' /> : <PlayArrowIcon fontSize='small' />}
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title='清空日志'>
+                    <IconButton size='small' onClick={clearOutput}>
+                        <ClearIcon fontSize='small' />
+                    </IconButton>
+                </Tooltip>
             </>
 
             { /* Actual Output */}
@@ -88,6 +109,11 @@ const Output = (props) => {
 
 Output.propTypes = {
     received: PropTypes.object,
+    monitoring: PropTypes.bool,
+    canMonitor: PropTypes.bool,
+    onStart: PropTypes.func,
+    onStop: PropTypes.func,
+    onClear: PropTypes.func,
 }
 
 export default Output
